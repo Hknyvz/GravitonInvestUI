@@ -1,9 +1,10 @@
-export interface ListActiveCompaniesResponseDto {
-  data: ListActiveCompaniesDataItem[];
+export interface ListCompanyResponseDto {
+  companies: ListCompanyResponseItem[];
 }
 
-export interface ListActiveCompaniesDataItem {
+export interface ListCompanyResponseItem {
   id: string;
   name: string;
-  companyCode: string;
+  code: string;
+  companyImage: string;
 }

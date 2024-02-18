@@ -1,36 +1,43 @@
-import BalanceTable from '@/components/balance/BalanceTable';
+import React, { cache } from 'react';
+
+import FinancialTable from '@/components/financial/FinancialTable';
 import { getDictionary } from '@/get-dictionary';
-import { Locale } from '@/i18n-config';
-import GetBalanceResponseData from '@/models/balance/GetBalanceResponseDto';
-import { ApiResponse } from '@/models/shared/ApiResponse';
-import React from 'react'
+import type { Locale } from '@/i18n-config';
+import { getBalance } from '@/services/financialServices';
 
-export async function generateMetadata({ params: { code, lang } }: { params: { code: string, lang: Locale } }) {
-    const data = await getData(code, lang);
-    return {
-        title: data.result.company?.name,
-    }
+const getCachedData = cache(async (code: string, lang: Locale) => {
+  return getBalance(code, lang);
+});
+
+export async function generateMetadata({
+  params: { code, lang },
+}: {
+  params: { code: string; lang: Locale };
+}) {
+  const data = await getCachedData(code, lang);
+  return {
+    title: data.result.company?.name,
+  };
 }
 
-async function page({ params: { code, lang } }: { params: { code: string, lang: Locale } }) {
-    const data = await getData(code, lang);
-    const dictionary = await getDictionary(lang);
-    return (
-        <>
-            <BalanceTable data={data.result} tableLanguage={dictionary["tableLanguage"]} ></BalanceTable>
-        </>
-    )
+export const revalidate = 10;
+
+async function page({
+  params: { code, lang },
+}: {
+  params: { code: string; lang: Locale };
+}) {
+  const data = await getCachedData(code, lang);
+  const tableTitle = (await getDictionary(lang)).tableLanguage
+    .balanceTableTitle;
+  return (
+    <>
+      <FinancialTable
+        tableHeaderTitle={tableTitle}
+        data={data.result}
+      ></FinancialTable>
+    </>
+  );
 }
 
-async function getData(code: string, lang: Locale): Promise<ApiResponse<GetBalanceResponseData>> {
-    let result = await fetch(`http://localhost:5000/api/FinancialData/GetBalance?companyCode=${code}&Language=${lang}`, { next: { revalidate: 3600 } });
-    if (!result.ok) {
-        throw new Error('Failed to fetch data')
-    }
-    let response: ApiResponse<GetBalanceResponseData> = await result.json();
-    if (response.meta.statusCode > 299) {
-    }
-    return response;
-}
-
-export default page
+export default page;

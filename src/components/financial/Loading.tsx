@@ -1,7 +1,7 @@
-import React from "react";
-import { Skeleton as AntdSkeleton } from 'antd'
-import { Skeleton } from "@/components/skeleton";
-import styles from "./styles.module.css";
+import { Skeleton as AntdSkeleton } from 'antd';
+import React from 'react';
+
+import { Skeleton } from '@/components/skeleton';
 
 function BalanceTableLoading() {
   return (

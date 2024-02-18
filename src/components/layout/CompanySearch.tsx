@@ -1,113 +1,153 @@
-'use client'
-import { useLocaleConfig } from '@/contexts/LocaleConfigContext';
-import { useThemeConfig } from '@/contexts/ThemeConfigContext';
-import { ListActiveCompaniesDataItem } from '@/models/company/ListActiveCompaniesResponseDto';
-import React, { useEffect, useState } from 'react'
-import { BalanceRoute } from '@/components/redirect';
-import { Locale } from '@/i18n-config';
+'use client';
+
+import { AutoComplete, Image, Input } from 'antd';
 import Link from 'next/link';
-import { AutoComplete, Input } from 'antd';
 import { usePathname, useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
+
+import { BalanceRoute } from '@/components/redirect';
+import { useThemeConfig } from '@/contexts/ThemeConfigContext';
+import { getDictionary } from '@/get-dictionary';
+import type { Locale } from '@/i18n-config';
+import type { ListCompanyResponseItem } from '@/models/company/ListActiveCompaniesResponseDto';
+import { getCompanies } from '@/services/companyServices';
 
 interface CompanySearchedOptions {
-    label: React.JSX.Element;
-    options?: CompanySearchedOptions[];
-    value?: string;
+  label: React.JSX.Element;
+  options?: CompanySearchedOptions[];
+  value?: string;
 }
 
-interface ICompanySearchProp {
-    data: ListActiveCompaniesDataItem[],
-    companySearch: {
-        searchCompany: string;
-        companies: string;
-    };
-}
+function CompanySearch() {
+  const [data, setData] = useState<ListCompanyResponseItem[]>([]);
+  const [companies, setCompanies] = useState<ListCompanyResponseItem[]>([]);
+  const [searchedText, setSearchedText] = useState<string>('');
+  const [searchedCompanies, setSearchedCompanies] =
+    useState<CompanySearchedOptions[]>();
+  const { themeConfig } = useThemeConfig();
+  const [isClicked, setIsClicked] = useState(false);
+  const router = useRouter();
+  const [locale] = useState<Locale>(usePathname().split('/')[1] as Locale);
+  const [companiesText, setCompaniesText] = useState('');
+  const [searchCompanyText, setSearchCompanyText] = useState('');
 
-function CompanySearch({ data, companySearch }: ICompanySearchProp) {
-    const [companies, setCompanies] = useState<ListActiveCompaniesDataItem[]>(data);
-    const [searchedText, setSearchedText] = useState<string>("")
-    const [searchedCompanies, setSearchedCompanies] = useState<CompanySearchedOptions[]>([])
-    const [palceHolder, setPalceHolder] = useState("");
-    const { themeConfig } = useThemeConfig();
-    const { localeConfig } = useLocaleConfig();
-    const router = useRouter();
+  useEffect(() => {
+    getCompanies().then((p) => {
+      setData(p.result.companies);
+      setCompanies(p.result.companies);
+    });
+  }, []);
 
-    useEffect(() => {
-        const f = async () => {
-            let newArray: CompanySearchedOptions[] = [];
-            companies.forEach(async p => {
-                newArray.push(await renderItem(p.companyCode, p.name, p.companyCode));
-            })
-            setSearchedCompanies([{ label: renderTitle(companySearch.companies), options: newArray }]);
-        }
-        const renderTitle = (title: string) => (
-            <span>
-                {title}
+  useEffect(() => {
+    getDictionary(locale).then((p) => {
+      setCompaniesText(p.companySearch.companies);
+      setSearchCompanyText(p.companySearch.searchCompany);
+    });
+  }, [locale]);
+
+  useEffect(() => {
+    const renderTitle = (title: string) => <span>{title}</span>;
+
+    const renderItem = async (
+      title: string,
+      name: string,
+      code: string,
+      companyImage: string
+    ): Promise<CompanySearchedOptions> => {
+      const nameHighlighted = name.replace(
+        new RegExp(`(${searchedText})`, 'gi'),
+        '<strong>$1</strong>'
+      );
+      const titleHighlighted = title.replace(
+        new RegExp(`(${searchedText})`, 'gi'),
+        '<strong>$1</strong>'
+      );
+      const imageUrl = `data:image/jpeg;base64,${companyImage}`;
+      return {
+        value: title,
+        label: (
+          <Link
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              color: themeConfig ? 'white' : 'black',
+              fontSize: '18px',
+            }}
+            href={await BalanceRoute(locale, code)}
+          >
+            <div dangerouslySetInnerHTML={{ __html: titleHighlighted }} />
+            <span style={{ fontSize: 14 }}>
+              <div dangerouslySetInnerHTML={{ __html: nameHighlighted }} />
             </span>
-        );
+            <Image
+              src={imageUrl}
+              alt="Base64 Image"
+              width={40}
+              height={40}
+              preview={false}
+              style={{ objectFit: 'scale-down' }}
+            />
+          </Link>
+        ),
+      };
+    };
 
-        const renderItem = async (title: string, name: string, companyCode: string): Promise<CompanySearchedOptions> => {
-            const nameHighlighted = name.replace(new RegExp(`(${searchedText})`, 'gi'), '<strong>$1</strong>');
-            const titleHighlighted = title.replace(new RegExp(`(${searchedText})`, 'gi'), '<strong>$1</strong>');
-            return ({
-                value: title,
-                label: (
-                    <Link
-                        style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            color: themeConfig ? "white" : "black",
-                            fontSize: "18px"
-                        }}
-                        href={await BalanceRoute(localeConfig as Locale, companyCode)}
-                    >
-                        <div dangerouslySetInnerHTML={{ __html: titleHighlighted }} />
-                        <span style={{ fontSize: 14 }}>
-                            <div dangerouslySetInnerHTML={{ __html: nameHighlighted }} />
-                        </span>
-                    </Link>
-                ),
-            })
-        };
-        f()
-    }, [companies, localeConfig, themeConfig, searchedText, companySearch])
+    const f = async () => {
+      const newArray: CompanySearchedOptions[] = [];
+      companies.forEach(async (p) => {
+        newArray.push(await renderItem(p.code, p.name, p.code, p.companyImage));
+      });
+      setSearchedCompanies([
+        { label: renderTitle(companiesText), options: newArray },
+      ]);
+    };
 
-    useEffect(() => {
-    }, [])
+    f();
+  }, [companies, locale, themeConfig, searchedText, companiesText, isClicked]);
 
-    const handleInput = async (value: string) => {
-        console.log(value)
-        if (value) {
-            const regex = new RegExp(value, "i");
-            let newItems = data.filter(p => regex.test(p.name) || regex.test(p.companyCode));
-            setSearchedText(value)
-            setCompanies(newItems);
-        }
+  const handleInput = async (value: string) => {
+    if (value) {
+      const regex = new RegExp(value, 'i');
+      const newItems = data.filter(
+        (p) => regex.test(p.name) || regex.test(p.code)
+      );
+      setSearchedText(value);
+      setCompanies(newItems);
     }
+  };
 
-    const handlePressEnter = async (event: string, options: any) => {
-        let company = companies.filter(p => p.companyCode === options.value)[0];
-        router.push(await BalanceRoute(localeConfig as Locale, company.companyCode));
-        handleInput(event)
-    }
+  const handlePressEnter = async (event: string, options: any) => {
+    const company = companies.filter((p) => p.code === options.value)[0];
+    if (company) router.push(await BalanceRoute(locale, company.code));
+    handleInput(event);
+  };
 
-    function handleClear(): void {
-        setSearchedText("");
-    }
+  function handleClear(): void {
+    setSearchedText('');
+  }
 
-    return (
-        <AutoComplete
-            popupClassName="certain-category-search-dropdown"
-            popupMatchSelectWidth={800}
-            style={{ width: 800 }}
-            options={searchedCompanies}
-            onSelect={handlePressEnter}
-            allowClear={true}
-            onClear={handleClear}
-        >
-            <Input.Search onInput={(e) => handleInput(e.currentTarget.value)} size="large" placeholder={companySearch.searchCompany} />
-        </AutoComplete>
-    )
+  function handleClick(): void {
+    setIsClicked(true);
+  }
+
+  return (
+    <AutoComplete
+      popupClassName="certain-category-search-dropdown"
+      popupMatchSelectWidth={800}
+      style={{ width: 800 }}
+      options={searchedCompanies}
+      onSelect={handlePressEnter}
+      allowClear={true}
+      onClear={handleClear}
+    >
+      <Input.Search
+        onClick={handleClick}
+        onInput={(e) => handleInput(e.currentTarget.value)}
+        size="large"
+        placeholder={searchCompanyText}
+      />
+    </AutoComplete>
+  );
 }
 
 export default React.memo(CompanySearch);

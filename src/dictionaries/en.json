@@ -4,6 +4,19 @@
     "companies": "Companies"
   },
   "tableLanguage": {
-    "tableHeaderTitle": "Balance Sheet Items"
+    "balanceTableTitle": "Balance Sheet Items",
+    "profitOrLossTableTitle" : "Profit Or Loss Items"
+  },
+  "menuTitle": {
+    "companyInfo": "Company Info",
+    "balanceSheet": "Balance Sheet",
+    "profitOrLoss": "Profit Or Loss",
+    "cashFlows": "Cash Flows"
+  },
+  "menuLink": {
+    "companyInfo": "company-info",
+    "balanceSheet": "balance",
+    "profitOrLoss": "profit-or-loss",
+    "cashFlows": "cash-flow"
   }
 }

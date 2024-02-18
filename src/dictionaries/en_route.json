@@ -1,4 +1,8 @@
 {
-  "balance": "balance",
-  "bilanco": "balance"
+  "bilanco": "balance-sheet",
+  "balance": "balance-sheet",
+  "balance-sheet": "balance-sheet",
+  "profitOrLoss": "profit-or-loss",
+  "profit-or-loss": "profit-or-loss",
+  "kar-veya-zarar": "profit-or-loss"
 }

@@ -1,9 +1,13 @@
-import React from 'react'
+import React from 'react';
 
-function loading() {
-    return (
-        <div>loading</div>
-    )
+import { BalanceTableLoading } from '@/components/financial/Loading';
+
+function BalanceLoading() {
+  return (
+    <>
+      <BalanceTableLoading />
+    </>
+  );
 }
 
-export default loading
+export default BalanceLoading;

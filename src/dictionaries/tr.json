@@ -4,6 +4,19 @@
     "companies": "Şirketler"
   },
   "tableLanguage": {
-    "tableHeaderTitle": "Bilanço Kalemleri"
+    "balanceTableTitle": "Bilanço Kalemleri",
+    "profitOrLossTableTitle" : "Kâr veya Zarar Kalemleri"
+  },
+  "menuTitle": {
+    "companyInfo": "Şirket Bilgiler",
+    "balanceSheet": "Bilanço",
+    "profitOrLoss": "Kâr Zarar",
+    "cashFlows": "Nakit Akışı"
+  },
+  "menuLink": {
+    "companyInfo": "sirket-bilgileri",
+    "balanceSheet": "bilanco",
+    "profitOrLoss": "kar-zarar",
+    "cashFlows": "nakit-akis"
   }
 }
